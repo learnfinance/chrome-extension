@@ -2,22 +2,8 @@
 console.log('LinkedIn Assistant Extension Loaded');
 
 // Webhook URLs
-const commentWebhookURL = 'https://hook.eu2.make.com/37ezdlfgwt282g8lbz6mcm4mpa3uzvnv';
+const commentWebhookURL = 'https://hook.eu2.make.com/9ahi02x9sbytb4zaqdlzb7otdmey2yir';
 const messageWebhookURL = 'https://hook.eu2.make.com/w82i1h07i07vj6zhi69ux2yb4kl0q5s5';
-
-// Listen for messages from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "generateMessage") {
-        const name = document.querySelector('#thread-detail-jump-target')?.innerText.trim();
-        if (name) {
-            showMessageGenerator(name);
-        } else {
-            alert('Could not find user name. Please ensure you are in a conversation.');
-        }
-    } else if (request.action === "showCommentBox") {
-        showQuotationBox();
-    }
-});
 
 // Function to create both buttons
 function createButtons() {
@@ -25,35 +11,17 @@ function createButtons() {
     const commentButton = document.createElement('button');
     commentButton.id = 'quotation-button';
     commentButton.innerHTML = '💬 Add Comment';
-    commentButton.style.position = 'fixed';
-    commentButton.style.top = '10px';
-    commentButton.style.right = '130px';
-    commentButton.style.backgroundColor = '#0073b1';
-    commentButton.style.color = '#fff';
-    commentButton.style.border = 'none';
-    commentButton.style.borderRadius = '5px';
-    commentButton.style.padding = '10px';
-    commentButton.style.cursor = 'pointer';
-    commentButton.style.fontSize = '14px';
-    commentButton.style.zIndex = '10000';
-    commentButton.style.fontFamily = "'Avenir', sans-serif";
+    styleButton(commentButton);
 
     // Create message button
     const messageButton = document.createElement('button');
     messageButton.id = 'message-button';
     messageButton.innerHTML = '✉️ Generate Message';
-    messageButton.style.position = 'fixed';
-    messageButton.style.top = '10px';
+    styleButton(messageButton);
+
+    // Position the buttons
+    commentButton.style.right = '140px';
     messageButton.style.right = '10px';
-    messageButton.style.backgroundColor = '#0073b1';
-    messageButton.style.color = '#fff';
-    messageButton.style.border = 'none';
-    messageButton.style.borderRadius = '5px';
-    messageButton.style.padding = '10px';
-    messageButton.style.cursor = 'pointer';
-    messageButton.style.fontSize = '14px';
-    messageButton.style.zIndex = '10000';
-    messageButton.style.fontFamily = "'Avenir', sans-serif";
 
     // Add event listeners
     commentButton.addEventListener('click', () => {
@@ -75,7 +43,25 @@ function createButtons() {
     document.body.appendChild(commentButton);
     document.body.appendChild(messageButton);
 }
+
+// Function to style buttons uniformly
+function styleButton(button) {
+    button.style.position = 'fixed';
+    button.style.top = '10px';
+    // button.style.right will be set in createButtons
+    button.style.backgroundColor = '#0073b1';
+    button.style.color = '#fff';
+    button.style.border = 'none';
+    button.style.borderRadius = '5px';
+    button.style.padding = '10px';
+    button.style.cursor = 'pointer';
+    button.style.fontSize = '14px';
+    button.style.zIndex = '10000';
+    button.style.fontFamily = "'Avenir', sans-serif";
+}
+
 // PART 2: Main Functions
+
 // Function to show the floating comment selection box
 function showQuotationBox() {
     console.log('Showing the Quotation Box');
@@ -92,7 +78,7 @@ function showQuotationBox() {
     quotationBox.style.top = "20%";
     quotationBox.style.right = "5%";
     quotationBox.style.width = "320px";
-    quotationBox.style.padding = "0"; // Remove padding to ensure the gradient covers the full top
+    quotationBox.style.padding = "0";
     quotationBox.style.background = "#ffffff";
     quotationBox.style.borderRadius = "15px";
     quotationBox.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.1)";
@@ -115,7 +101,7 @@ function showQuotationBox() {
     header.style.borderTopRightRadius = "15px";
     header.style.color = "#fff";
     header.style.display = "flex";
-    header.style.justifyContent = "center"; // Centering the title
+    header.style.justifyContent = "center";
     header.style.alignItems = "center";
 
     let title = document.createElement('h3');
@@ -123,8 +109,8 @@ function showQuotationBox() {
     title.style.margin = "0";
     title.style.fontFamily = "'Avenir', sans-serif";
     title.style.fontSize = "16px";
-    title.style.fontWeight = "bold"; // Bold title
-    title.style.color = "white"; // White text color
+    title.style.fontWeight = "bold";
+    title.style.color = "white";
 
     // Add a circular close button above the box
     let closeButton = document.createElement('button');
@@ -154,6 +140,197 @@ function showQuotationBox() {
 
     // Load comments after fetching from webhook
     fetchComments(quotationBox, loadingSpinner);
+}
+
+// Function to fetch comments and display them
+async function fetchComments(quotationBox, loadingSpinner) {
+    try {
+        const postText = await getPostContent();
+        const comments = await getComments();
+
+        const requestBody = {
+            postText: postText,
+            comments: comments
+        };
+
+        console.log("Sending the following data to the webhook:", requestBody);
+
+        // Send the combined data to the webhook
+        const response = await fetch(commentWebhookURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        const result = await response.text();
+        console.log("Webhook response received:", result);
+
+        if (!result || result.trim() === "") {
+            throw new Error("Received an empty response from the webhook.");
+        }
+
+        const commentsFromWebhook = result.split("\n").filter(line => line.trim() !== "");
+        console.log("Comments from Webhook:", commentsFromWebhook);
+
+        loadingSpinner.remove();
+
+        // Dynamically add comments from the webhook response
+        commentsFromWebhook.forEach(comment => {
+            let button = document.createElement('button');
+            button.className = "commentButton";
+            button.innerText = comment;
+            button.style.padding = "10px 15px";
+            button.style.margin = "10px 15px";
+            button.style.width = "calc(100% - 30px)";
+            button.style.backgroundColor = "#fff";
+            button.style.color = "#333";
+            button.style.border = "1px solid #ddd";
+            button.style.borderRadius = "10px";
+            button.style.cursor = "pointer";
+            button.style.fontSize = "14px";
+            button.style.fontFamily = "'Avenir', sans-serif";
+            button.style.textAlign = "left";
+
+            button.addEventListener('mouseover', () => {
+                button.style.backgroundColor = "#f0f8ff";
+                button.style.borderColor = "#ccc";
+                button.style.transform = "scale(1.02)";
+            });
+
+            button.addEventListener('mouseout', () => {
+                button.style.backgroundColor = "#fff";
+                button.style.borderColor = "#ddd";
+                button.style.transform = "scale(1)";
+            });
+
+            button.addEventListener('click', () => {
+                insertSelectedComment(button.innerText);
+                quotationBox.remove();
+                showSuccessAnimation();
+            });
+
+            quotationBox.appendChild(button);
+        });
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        loadingSpinner.remove();
+
+        const errorMessage = document.createElement('div');
+        errorMessage.style.padding = "20px";
+        errorMessage.style.color = "#dc3545";
+        errorMessage.innerText = 'Failed to generate comments. Please try again.';
+        quotationBox.appendChild(errorMessage);
+    }
+}
+
+// Improved function to get post content
+function getPostContent() {
+    return new Promise((resolve, reject) => {
+        const observer = new MutationObserver(() => {
+            const postElement = document.querySelector('.feed-shared-update-v2__description') ||
+                                document.querySelector('.break-words') ||
+                                document.querySelector('.feed-shared-text__text-view');
+
+            if (postElement) {
+                observer.disconnect();
+                const postText = postElement.innerText.trim();
+                console.log("Post text captured:", postText);
+                resolve(postText);
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            observer.disconnect();
+            reject('Post content not found within timeout.');
+        }, 10000);
+    });
+}
+
+// Improved function to get comments
+function getComments() {
+    return new Promise((resolve, reject) => {
+        const comments = new Set();
+        let lastHeight = 0;
+        const commentsContainer = document.querySelector('.comments-comments-list') ||
+                                   document.querySelector('.comments-comments-list__overflow');
+
+        if (!commentsContainer) {
+            console.log("No comments container found.");
+            resolve([]);
+            return;
+        }
+
+        const observer = new MutationObserver(() => {
+            const commentElements = document.querySelectorAll('.comments-comment-item__main-content, .comment-item__main-content');
+            commentElements.forEach(commentElement => {
+                const commentText = commentElement.innerText.trim();
+                if (commentText) {
+                    comments.add(commentText);
+                }
+            });
+
+            // Check if more comments are being loaded
+            const currentHeight = commentsContainer.scrollHeight;
+            if (currentHeight !== lastHeight) {
+                lastHeight = currentHeight;
+                commentsContainer.scrollTop = currentHeight;
+            } else {
+                observer.disconnect();
+                resolve(Array.from(comments));
+            }
+        });
+
+        observer.observe(commentsContainer, { childList: true, subtree: true });
+
+        // Start scrolling
+        commentsContainer.scrollTop = commentsContainer.scrollHeight;
+
+        // Timeout after 15 seconds
+        setTimeout(() => {
+            observer.disconnect();
+            resolve(Array.from(comments));
+        }, 15000);
+    });
+}
+
+// Function to insert the selected comment into the LinkedIn comment box
+function insertSelectedComment(comment) {
+    const commentBox = document.querySelector('[contenteditable="true"]');
+    if (commentBox) {
+        commentBox.innerText = comment;
+        console.log("Inserted comment:", comment);
+        // Dispatch input event to notify LinkedIn
+        const event = new Event('input', { bubbles: true });
+        commentBox.dispatchEvent(event);
+    } else {
+        alert("Unable to find the comment box.");
+    }
+}
+
+// Function to show success animation
+function showSuccessAnimation() {
+    const success = document.createElement('div');
+    success.style.position = 'fixed';
+    success.style.top = '50%';
+    success.style.left = '50%';
+    success.style.transform = 'translate(-50%, -50%)';
+    success.style.padding = '20px';
+    success.style.backgroundColor = '#28a745';
+    success.style.color = '#fff';
+    success.style.borderRadius = '10px';
+    success.style.zIndex = '10001';
+    success.innerText = 'Text copied! ✓';
+
+    document.body.appendChild(success);
+
+    setTimeout(() => {
+        success.remove();
+    }, 2000);
 }
 
 // Function to show message generator
@@ -229,90 +406,50 @@ function showMessageGenerator(userName) {
     generateMessage(userName, messageBox, loadingSpinner);
 }
 
-// Function to fetch comments
-function fetchComments(quotationBox, loadingSpinner) {
-    const postData = {
-        postText: 'Sample post text',
-        comments: []
-    };
+// Function to get conversation history
+function getConversationHistory() {
+    const messages = [];
+    const messageElements = document.querySelectorAll('.msg-s-event-listitem');
 
-    fetch(commentWebhookURL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData)
-    })
-    .then(response => response.text())
-    .then(result => {
-        console.log("Webhook response received:", result);
+    messageElements.forEach(element => {
+        const senderElement = element.querySelector('.msg-s-message-group__name');
+        const timeElement = element.querySelector('.msg-s-message-group__timestamp');
+        const messageBodyElement = element.querySelector('.msg-s-event-listitem__body');
 
-        if (!result || result.trim() === "") {
-            throw new Error("Received an empty response from the webhook.");
+        if (senderElement && timeElement && messageBodyElement) {
+            const sender = senderElement.innerText.trim();
+            const time = timeElement.innerText.trim();
+            const messageText = messageBodyElement.innerText.trim();
+
+            messages.push({
+                sender: sender,
+                time: time,
+                message: messageText
+            });
         }
-
-        // Split the response by lines and treat each line as a comment
-        const commentsFromWebhook = result.split("\n").filter(line => line.trim() !== "");
-        console.log("Comments from Webhook:", commentsFromWebhook);
-
-        loadingSpinner.remove();
-
-        commentsFromWebhook.forEach(comment => {
-            let button = document.createElement('button');
-            button.className = "commentButton";
-            button.innerText = comment;
-            button.style.padding = "10px 15px";
-            button.style.margin = "10px 15px";
-            button.style.width = "calc(100% - 30px)";
-            button.style.backgroundColor = "#fff";
-            button.style.color = "#333";
-            button.style.border = "1px solid #ddd";
-            button.style.borderRadius = "10px";
-            button.style.cursor = "pointer";
-            button.style.fontSize = "14px";
-            button.style.fontFamily = "'Avenir', sans-serif";
-            button.style.textAlign = "left";
-
-            button.addEventListener('mouseover', () => {
-                button.style.backgroundColor = "#f0f8ff";
-                button.style.transform = "scale(1.02)";
-            });
-
-            button.addEventListener('mouseout', () => {
-                button.style.backgroundColor = "#fff";
-                button.style.transform = "scale(1)";
-            });
-
-            button.addEventListener('click', () => {
-                insertSelectedComment(button.innerText);
-                quotationBox.remove();
-                showSuccessAnimation();
-            });
-
-            quotationBox.appendChild(button);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching comments:', error);
-        loadingSpinner.remove();
-        
-        const errorMessage = document.createElement('div');
-        errorMessage.style.padding = "20px";
-        errorMessage.style.color = "#dc3545";
-        errorMessage.innerText = 'Failed to generate comments. Please try again.';
-        quotationBox.appendChild(errorMessage);
     });
+
+    return messages;
 }
 
 // Function to generate message
 async function generateMessage(userName, messageBox, loadingSpinner) {
     try {
+        const conversationHistory = getConversationHistory();
+
+        const requestBody = {
+            name: userName,
+            conversationHistory: conversationHistory
+        };
+
+        console.log("Sending the following data to the message webhook:", requestBody);
+
         const response = await fetch(messageWebhookURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ name: userName })
+            body: JSON.stringify(requestBody)
         });
 
         const message = await response.text();
@@ -356,7 +493,7 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
     } catch (error) {
         console.error('Error generating message:', error);
         loadingSpinner.remove();
-        
+
         const errorMessage = document.createElement('div');
         errorMessage.style.padding = "20px";
         errorMessage.style.color = "#dc3545";
@@ -365,49 +502,23 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
     }
 }
 
-// PART 3: UI Functions and Styling
 // Function to insert message into LinkedIn message box
 function insertMessage(message) {
     const messageInput = document.querySelector('div.msg-form__contenteditable[contenteditable="true"]');
     if (messageInput) {
-        messageInput.innerHTML = `<p>${message}</p>`;
+        // Insert text
+        messageInput.innerText = message;
         console.log('Message inserted:', message);
+
+        // Dispatch input event to notify LinkedIn
+        const event = new Event('input', { bubbles: true });
+        messageInput.dispatchEvent(event);
     } else {
         console.error('Message input not found');
     }
 }
 
-// Function to insert comment
-function insertSelectedComment(comment) {
-    const commentBox = document.querySelector('[contenteditable="true"]');
-    if (commentBox) {
-        commentBox.innerText = comment;
-        console.log("Inserted comment:", comment);
-    } else {
-        alert("Unable to find the comment box.");
-    }
-}
-
-// Function to show success animation
-function showSuccessAnimation() {
-    const success = document.createElement('div');
-    success.style.position = 'fixed';
-    success.style.top = '50%';
-    success.style.left = '50%';
-    success.style.transform = 'translate(-50%, -50%)';
-    success.style.padding = '20px';
-    success.style.backgroundColor = '#28a745';
-    success.style.color = '#fff';
-    success.style.borderRadius = '10px';
-    success.style.zIndex = '10001';
-    success.innerText = 'Text copied! ✓';
-
-    document.body.appendChild(success);
-
-    setTimeout(() => {
-        success.remove();
-    }, 2000);
-}
+// PART 3: UI Functions and Styling
 
 // Add styles
 const style = document.createElement('style');

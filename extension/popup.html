@@ -6,33 +6,70 @@
     <title>LinkedIn Assistant</title>
     <style>
         body {
-            width: 200px;
-            padding: 10px;
+            width: 300px; /* Increased width */
+            min-height: 200px; /* Added minimum height */
+            padding: 20px;
             font-family: 'Avenir', Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #0073b1;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         button {
             width: 100%;
-            padding: 10px;
+            padding: 15px; /* Increased padding */
             margin: 5px 0;
-            font-size: 14px;
+            font-size: 16px; /* Increased font size */
             background-color: #0073b1;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 10px;
+            transition: all 0.3s ease;
         }
         button:hover {
             background-color: #005e93;
+            transform: translateY(-1px);
+        }
+        button span {
+            font-size: 20px; /* Larger emoji */
         }
     </style>
 </head>
 <body>
-    <button id="triggerComment"><span>💬</span> Add Comment</button>
-    <button id="triggerMessage"><span>✉️</span> Generate Message</button>
+    <div class="container">
+        <div class="header">
+            <h2>LinkedIn Assistant</h2>
+        </div>
+        <div class="button-container">
+            <button id="triggerComment">
+                <span>💬</span>
+                Add Comment
+            </button>
+            <button id="triggerMessage">
+                <span>✉️</span>
+                Generate Message
+            </button>
+        </div>
+    </div>
     <script src="popup.js"></script>
 </body>
 </html>
