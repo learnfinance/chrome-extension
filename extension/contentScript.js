@@ -468,8 +468,8 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
         });
 
         // Parse the response as JSON
-        const result = await response.json();
-        console.log("Generated messages:", result);
+        const jsonResponse = await response.json();
+        console.log("Generated messages:", jsonResponse);
 
         loadingSpinner.remove();
 
@@ -480,17 +480,31 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
         messagesContainer.style.flexDirection = 'column';
         messagesContainer.style.gap = '15px';
 
-        // Iterate through the JSON messages
-        Object.entries(result).forEach(([key, message], index) => {
+        // Log the number of messages we're processing
+        console.log("Number of messages to create:", Object.keys(jsonResponse).length);
+
+        // Process each message from the JSON
+        Object.entries(jsonResponse).forEach(([key, message], index) => {
+            console.log(`Creating button for message ${index + 1}:`, message);
+
             const messageWrapper = document.createElement('div');
             messageWrapper.style.width = '100%';
             
             // Create message button
             const messageButton = document.createElement('button');
-            messageButton.innerHTML = `<strong>Option ${index + 1}:</strong><br>${message}`;
+            
+            // Add message number and content
+            messageButton.innerHTML = `
+                <div style="margin-bottom: 8px; font-weight: bold; color: #0073b1;">
+                    Option ${index + 1}
+                </div>
+                <div style="white-space: pre-wrap;">${message}</div>
+            `;
+
+            // Style the button
             messageButton.style.width = '100%';
             messageButton.style.padding = '15px 20px';
-            messageButton.style.margin = '0';
+            messageButton.style.marginBottom = '10px';
             messageButton.style.backgroundColor = '#fff';
             messageButton.style.color = '#333';
             messageButton.style.border = '1px solid #ddd';
@@ -502,10 +516,10 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
             messageButton.style.transition = 'all 0.2s ease';
             messageButton.style.display = 'block';
 
-            // Add hover effects
+            // Hover effects
             messageButton.addEventListener('mouseover', () => {
                 messageButton.style.backgroundColor = '#f0f8ff';
-                messageButton.style.transform = 'scale(1.02)';
+                messageButton.style.transform = 'scale(1.01)';
                 messageButton.style.borderColor = '#0073b1';
             });
 
@@ -515,7 +529,7 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
                 messageButton.style.borderColor = '#ddd';
             });
 
-            // Add click handler
+            // Click handler
             messageButton.addEventListener('click', () => {
                 insertMessage(message);
                 messageBox.remove();
@@ -530,6 +544,7 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
 
     } catch (error) {
         console.error('Error generating message:', error);
+        console.error('Error details:', error.stack);
         loadingSpinner.remove();
 
         const errorMessage = document.createElement('div');
