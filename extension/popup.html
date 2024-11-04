@@ -8,18 +8,22 @@
         body {
             width: 200px;
             padding: 10px;
-            font-family: Arial, sans-serif;
+            font-family: 'Avenir', Arial, sans-serif;
         }
         button {
             width: 100%;
             padding: 10px;
             margin: 5px 0;
             font-size: 14px;
-            border: none;
-            border-radius: 5px;
             background-color: #0073b1;
             color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
         button:hover {
             background-color: #005e93;
@@ -27,9 +31,8 @@
     </style>
 </head>
 <body>
-    <h3>LinkedIn Assistant</h3>
-    <button id="triggerMessageBox">Generate Message</button>
-    <button id="triggerQuotationBox">Add Comment</button>
+    <button id="triggerComment"><span>💬</span> Add Comment</button>
+    <button id="triggerMessage"><span>✉️</span> Generate Message</button>
     <script src="popup.js"></script>
 </body>
 </html>

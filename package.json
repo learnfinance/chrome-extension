@@ -1,0 +1,11 @@
+{
+    "name": "linkedin-extension",
+    "version": "1.0.0",
+    "description": "LinkedIn Assistant Chrome Extension",
+    "scripts": {
+      "start": "serve ."
+    },
+    "dependencies": {
+      "serve": "^14.0.0"
+    }
+  }

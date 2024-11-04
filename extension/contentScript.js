@@ -1,8 +1,23 @@
+// PART 1: Initialization and Setup
 console.log('LinkedIn Assistant Extension Loaded');
 
 // Webhook URLs
 const commentWebhookURL = 'https://hook.eu2.make.com/37ezdlfgwt282g8lbz6mcm4mpa3uzvnv';
 const messageWebhookURL = 'https://hook.eu2.make.com/w82i1h07i07vj6zhi69ux2yb4kl0q5s5';
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "generateMessage") {
+        const name = document.querySelector('#thread-detail-jump-target')?.innerText.trim();
+        if (name) {
+            showMessageGenerator(name);
+        } else {
+            alert('Could not find user name. Please ensure you are in a conversation.');
+        }
+    } else if (request.action === "showCommentBox") {
+        showQuotationBox();
+    }
+});
 
 // Function to create both buttons
 function createButtons() {
@@ -59,6 +74,159 @@ function createButtons() {
     // Add buttons to page
     document.body.appendChild(commentButton);
     document.body.appendChild(messageButton);
+}
+// PART 2: Main Functions
+// Function to show the floating comment selection box
+function showQuotationBox() {
+    console.log('Showing the Quotation Box');
+
+    // Remove any existing box
+    if (document.getElementById("quotationBox")) {
+        document.getElementById("quotationBox").remove();
+    }
+
+    // Create the floating box
+    let quotationBox = document.createElement("div");
+    quotationBox.id = "quotationBox";
+    quotationBox.style.position = "fixed";
+    quotationBox.style.top = "20%";
+    quotationBox.style.right = "5%";
+    quotationBox.style.width = "320px";
+    quotationBox.style.padding = "0"; // Remove padding to ensure the gradient covers the full top
+    quotationBox.style.background = "#ffffff";
+    quotationBox.style.borderRadius = "15px";
+    quotationBox.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.1)";
+    quotationBox.style.zIndex = "10000";
+    quotationBox.style.color = "#333";
+    quotationBox.style.display = "flex";
+    quotationBox.style.flexDirection = "column";
+    quotationBox.style.alignItems = "center";
+    quotationBox.style.maxHeight = "600px";
+    quotationBox.style.overflowY = "auto";
+
+    // Add header with gradient background
+    let header = document.createElement('div');
+    header.style.width = "100%";
+    header.style.padding = "15px";
+    header.style.background = "linear-gradient(-45deg, #9C27B0, #E91E63, #9C27B0, #E91E63)";
+    header.style.backgroundSize = "400% 400%";
+    header.style.animation = "gradientAnimation 5s ease infinite";
+    header.style.borderTopLeftRadius = "15px";
+    header.style.borderTopRightRadius = "15px";
+    header.style.color = "#fff";
+    header.style.display = "flex";
+    header.style.justifyContent = "center"; // Centering the title
+    header.style.alignItems = "center";
+
+    let title = document.createElement('h3');
+    title.innerText = "LinkedIN Genie";
+    title.style.margin = "0";
+    title.style.fontFamily = "'Avenir', sans-serif";
+    title.style.fontSize = "16px";
+    title.style.fontWeight = "bold"; // Bold title
+    title.style.color = "white"; // White text color
+
+    // Add a circular close button above the box
+    let closeButton = document.createElement('button');
+    closeButton.innerText = "✕";
+    closeButton.style.position = "absolute";
+    closeButton.style.top = "10px";
+    closeButton.style.right = "10px";
+    closeButton.style.background = "transparent";
+    closeButton.style.border = "none";
+    closeButton.style.color = "#fff";
+    closeButton.style.fontSize = "20px";
+    closeButton.style.cursor = "pointer";
+    closeButton.style.zIndex = "10001";
+    closeButton.addEventListener('click', () => quotationBox.remove());
+
+    header.appendChild(title);
+    header.appendChild(closeButton);
+    quotationBox.appendChild(header);
+
+    // Add loading spinner
+    let loadingSpinner = document.createElement('div');
+    loadingSpinner.classList.add('loading-spinner');
+    loadingSpinner.style.marginTop = "100px";
+    quotationBox.appendChild(loadingSpinner);
+
+    document.body.appendChild(quotationBox);
+
+    // Load comments after fetching from webhook
+    fetchComments(quotationBox, loadingSpinner);
+}
+
+// Function to show message generator
+function showMessageGenerator(userName) {
+    // Remove any existing box
+    if (document.getElementById("messageBox")) {
+        document.getElementById("messageBox").remove();
+    }
+
+    const messageBox = document.createElement('div');
+    messageBox.id = "messageBox";
+    messageBox.style.position = "fixed";
+    messageBox.style.top = "20%";
+    messageBox.style.right = "5%";
+    messageBox.style.width = "320px";
+    messageBox.style.padding = "0";
+    messageBox.style.background = "#ffffff";
+    messageBox.style.borderRadius = "15px";
+    messageBox.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.1)";
+    messageBox.style.zIndex = "10000";
+    messageBox.style.display = "flex";
+    messageBox.style.flexDirection = "column";
+    messageBox.style.maxHeight = "600px";
+    messageBox.style.overflowY = "auto";
+
+    // Add header
+    const header = document.createElement('div');
+    header.style.width = "100%";
+    header.style.padding = "15px";
+    header.style.background = "linear-gradient(-45deg, #0077B5, #00A0DC)";
+    header.style.backgroundSize = "400% 400%";
+    header.style.borderTopLeftRadius = "15px";
+    header.style.borderTopRightRadius = "15px";
+    header.style.color = "#fff";
+    header.style.display = "flex";
+    header.style.justifyContent = "center";
+    header.style.alignItems = "center";
+
+    const title = document.createElement('h3');
+    title.innerText = `Generate Message for ${userName}`;
+    title.style.margin = "0";
+    title.style.fontFamily = "'Avenir', sans-serif";
+    title.style.fontSize = "16px";
+    title.style.fontWeight = "bold";
+    title.style.color = "white";
+
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.innerText = "✕";
+    closeButton.style.position = "absolute";
+    closeButton.style.top = "10px";
+    closeButton.style.right = "10px";
+    closeButton.style.background = "transparent";
+    closeButton.style.border = "none";
+    closeButton.style.color = "#fff";
+    closeButton.style.fontSize = "20px";
+    closeButton.style.cursor = "pointer";
+    closeButton.addEventListener('click', () => messageBox.remove());
+
+    header.appendChild(title);
+    header.appendChild(closeButton);
+    messageBox.appendChild(header);
+
+    // Add loading spinner
+    const loadingSpinner = document.createElement('div');
+    loadingSpinner.classList.add('loading-spinner');
+    loadingSpinner.style.marginTop = "100px";
+    messageBox.appendChild(loadingSpinner);
+
+    document.body.appendChild(messageBox);
+
+    // Generate message
+    generateMessage(userName, messageBox, loadingSpinner);
 }
 
 // Function to fetch comments
@@ -197,6 +365,7 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
     }
 }
 
+// PART 3: UI Functions and Styling
 // Function to insert message into LinkedIn message box
 function insertMessage(message) {
     const messageInput = document.querySelector('div.msg-form__contenteditable[contenteditable="true"]');

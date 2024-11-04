@@ -1,8 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "LinkedIn Assistant",
+  "name": "LinkedIn Comment & Message Assistant",
   "version": "1.0",
-  "description": "Generate messages and comments for LinkedIn",
   "permissions": [
     "activeTab",
     "scripting",
@@ -12,6 +11,9 @@
     "https://www.linkedin.com/*",
     "https://hook.eu2.make.com/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://www.linkedin.com/*"],

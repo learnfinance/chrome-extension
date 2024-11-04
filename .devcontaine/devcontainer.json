@@ -1,0 +1,14 @@
+{
+    "name": "Chrome Extension Development",
+    "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+    "forwardPorts": [3000],
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "dbaeumer.vscode-eslint",
+          "esbenp.prettier-vscode"
+        ]
+      }
+    },
+    "postCreateCommand": "npm install -g http-server"
+  }
