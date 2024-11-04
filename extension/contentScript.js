@@ -503,18 +503,58 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
 }
 
 // Function to insert message into LinkedIn message box
-function insertMessage(message) {
-    const messageInput = document.querySelector('div.msg-form__contenteditable[contenteditable="true"]');
-    if (messageInput) {
-        // Insert text
-        messageInput.innerText = message;
-        console.log('Message inserted:', message);
+async function insertMessage(message) {
+    try {
+        // Find message container and input elements
+        const messageContainer = document.querySelector('.msg-form__msg-content-container');
+        const messageInput = document.querySelector('.msg-form__contenteditable[contenteditable="true"]');
 
-        // Dispatch input event to notify LinkedIn
-        const event = new Event('input', { bubbles: true });
-        messageInput.dispatchEvent(event);
-    } else {
-        console.error('Message input not found');
+        // Check if elements exist
+        if (!messageContainer || !messageInput) {
+            console.error('Message container or input not found');
+            alert('Unable to find message input. Please make sure you are in a conversation.');
+            return;
+        }
+
+        // Check for duplicate messages
+        const previousMessages = document.querySelectorAll('.msg-s-event-listitem__body');
+        const isDuplicate = Array.from(previousMessages).some(msgElement => {
+            const existingMessage = msgElement.textContent.trim();
+            return existingMessage === message.trim();
+        });
+
+        if (isDuplicate) {
+            alert('This message has already been sent in this conversation.');
+            return false;
+        }
+
+        // Activate the container if not already active
+        if (!messageContainer.classList.contains('msg-form__msg-content-container--is-active')) {
+            messageInput.focus();
+            // Add a small delay to ensure focus is registered
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        // Create paragraph element for the message
+        const messageHTML = `<p>${message}</p>`;
+        messageInput.innerHTML = messageHTML;
+
+        // Dispatch required events
+        messageInput.dispatchEvent(new Event('input', { bubbles: true }));
+        messageInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // Verify message was inserted
+        if (messageInput.textContent.trim() !== message.trim()) {
+            throw new Error('Message insertion failed - content mismatch');
+        }
+
+        console.log('Message successfully inserted:', message);
+        return true;
+
+    } catch (error) {
+        console.error('Error inserting message:', error);
+        alert('Failed to insert message. Please try again.');
+        return false;
     }
 }
 
