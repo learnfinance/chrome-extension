@@ -333,7 +333,6 @@ function showSuccessAnimation() {
     }, 2000);
 }
 
-// Function to show message generator
 function showMessageGenerator(userName) {
     // Remove any existing box
     if (document.getElementById("messageBox")) {
@@ -343,9 +342,9 @@ function showMessageGenerator(userName) {
     const messageBox = document.createElement('div');
     messageBox.id = "messageBox";
     messageBox.style.position = "fixed";
-    messageBox.style.top = "20%";
+    messageBox.style.top = "15%"; // Moved up slightly
     messageBox.style.right = "5%";
-    messageBox.style.width = "320px";
+    messageBox.style.width = "400px"; // Increased from 320px
     messageBox.style.padding = "0";
     messageBox.style.background = "#ffffff";
     messageBox.style.borderRadius = "15px";
@@ -353,13 +352,13 @@ function showMessageGenerator(userName) {
     messageBox.style.zIndex = "10000";
     messageBox.style.display = "flex";
     messageBox.style.flexDirection = "column";
-    messageBox.style.maxHeight = "600px";
+    messageBox.style.maxHeight = "700px"; // Increased from 600px
     messageBox.style.overflowY = "auto";
 
     // Add header
     const header = document.createElement('div');
     header.style.width = "100%";
-    header.style.padding = "15px";
+    header.style.padding = "20px"; // Increased padding
     header.style.background = "linear-gradient(-45deg, #0077B5, #00A0DC)";
     header.style.backgroundSize = "400% 400%";
     header.style.borderTopLeftRadius = "15px";
@@ -373,20 +372,28 @@ function showMessageGenerator(userName) {
     title.innerText = `Generate Message for ${userName}`;
     title.style.margin = "0";
     title.style.fontFamily = "'Avenir', sans-serif";
-    title.style.fontSize = "16px";
+    title.style.fontSize = "18px"; // Increased from 16px
     title.style.fontWeight = "bold";
     title.style.color = "white";
+
+    // Modify generateMessage function's button styling
+    const messageButton = document.createElement('button');
+    messageButton.style.padding = "15px 20px"; // Increased padding
+    messageButton.style.margin = "12px 20px"; // Increased margin
+    messageButton.style.width = "calc(100% - 40px)"; // Adjusted for new padding
+    messageButton.style.fontSize = "16px"; // Increased from 14px
+    messageButton.style.lineHeight = "1.5"; // Added line height for better readability
 
     // Add close button
     const closeButton = document.createElement('button');
     closeButton.innerText = "✕";
     closeButton.style.position = "absolute";
-    closeButton.style.top = "10px";
-    closeButton.style.right = "10px";
+    closeButton.style.top = "15px"; // Adjusted position
+    closeButton.style.right = "15px";
     closeButton.style.background = "transparent";
     closeButton.style.border = "none";
     closeButton.style.color = "#fff";
-    closeButton.style.fontSize = "20px";
+    closeButton.style.fontSize = "24px"; // Increased size
     closeButton.style.cursor = "pointer";
     closeButton.addEventListener('click', () => messageBox.remove());
 
@@ -398,6 +405,8 @@ function showMessageGenerator(userName) {
     const loadingSpinner = document.createElement('div');
     loadingSpinner.classList.add('loading-spinner');
     loadingSpinner.style.marginTop = "100px";
+    loadingSpinner.style.width = "40px"; // Increased spinner size
+    loadingSpinner.style.height = "40px"; // Increased spinner size
     messageBox.appendChild(loadingSpinner);
 
     document.body.appendChild(messageBox);
@@ -410,8 +419,13 @@ function showMessageGenerator(userName) {
 function getConversationHistory() {
     const messages = [];
     const messageElements = document.querySelectorAll('.msg-s-event-listitem');
+    
+    // Convert NodeList to Array and get last 4 items
+    const lastFourMessages = Array.from(messageElements)
+        .slice(-4)  // Take last 4 elements
+        .reverse(); // Reverse to get chronological order
 
-    messageElements.forEach(element => {
+    lastFourMessages.forEach(element => {
         const senderElement = element.querySelector('.msg-s-message-group__name');
         const timeElement = element.querySelector('.msg-s-message-group__timestamp');
         const messageBodyElement = element.querySelector('.msg-s-event-listitem__body');
@@ -431,6 +445,7 @@ function getConversationHistory() {
 
     return messages;
 }
+
 
 // Function to generate message
 async function generateMessage(userName, messageBox, loadingSpinner) {
@@ -452,43 +467,62 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
             body: JSON.stringify(requestBody)
         });
 
-        const message = await response.text();
-        console.log("Generated message:", message);
+        const result = await response.text();
+        console.log("Generated message:", result);
 
         loadingSpinner.remove();
 
-        // Create message button
-        const messageButton = document.createElement('button');
-        messageButton.innerText = message;
-        messageButton.style.padding = "10px 15px";
-        messageButton.style.margin = "10px 15px";
-        messageButton.style.width = "calc(100% - 30px)";
-        messageButton.style.backgroundColor = "#fff";
-        messageButton.style.color = "#333";
-        messageButton.style.border = "1px solid #ddd";
-        messageButton.style.borderRadius = "10px";
-        messageButton.style.cursor = "pointer";
-        messageButton.style.fontSize = "14px";
-        messageButton.style.textAlign = "left";
-        messageButton.style.transition = "all 0.2s ease";
+        // Split the response into separate messages and create buttons for each
+        const messages = result.split('\n').filter(msg => msg.trim() !== '');
+        
+        // Create a container for all message buttons
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.style.width = '100%';
+        buttonsContainer.style.padding = '10px 0';
 
-        messageButton.addEventListener('mouseover', () => {
-            messageButton.style.backgroundColor = "#f0f8ff";
-            messageButton.style.transform = "scale(1.02)";
-        });
-
-        messageButton.addEventListener('mouseout', () => {
+        messages.forEach((message, index) => {
+            const messageButton = document.createElement('button');
+            messageButton.innerText = message;
+            messageButton.style.padding = "15px 20px"; // Increased padding
+            messageButton.style.margin = "12px 20px"; // Increased margin
+            messageButton.style.width = "calc(100% - 40px)"; // Adjusted for new margins
             messageButton.style.backgroundColor = "#fff";
-            messageButton.style.transform = "scale(1)";
+            messageButton.style.color = "#333";
+            messageButton.style.border = "1px solid #ddd";
+            messageButton.style.borderRadius = "10px";
+            messageButton.style.cursor = "pointer";
+            messageButton.style.fontSize = "16px"; // Increased font size
+            messageButton.style.lineHeight = "1.5"; // Added for better readability
+            messageButton.style.textAlign = "left";
+            messageButton.style.transition = "all 0.2s ease";
+
+            // Add number indicator
+            const numberIndicator = document.createElement('span');
+            numberIndicator.innerText = `${index + 1}. `;
+            numberIndicator.style.fontWeight = 'bold';
+            numberIndicator.style.marginRight = '5px';
+            messageButton.prepend(numberIndicator);
+
+            messageButton.addEventListener('mouseover', () => {
+                messageButton.style.backgroundColor = "#f0f8ff";
+                messageButton.style.transform = "scale(1.02)";
+            });
+
+            messageButton.addEventListener('mouseout', () => {
+                messageButton.style.backgroundColor = "#fff";
+                messageButton.style.transform = "scale(1)";
+            });
+
+            messageButton.addEventListener('click', () => {
+                insertMessage(message);
+                messageBox.remove();
+                showSuccessAnimation();
+            });
+
+            buttonsContainer.appendChild(messageButton);
         });
 
-        messageButton.addEventListener('click', () => {
-            insertMessage(message);
-            messageBox.remove();
-            showSuccessAnimation();
-        });
-
-        messageBox.appendChild(messageButton);
+        messageBox.appendChild(buttonsContainer);
 
     } catch (error) {
         console.error('Error generating message:', error);
@@ -508,6 +542,15 @@ async function insertMessage(message) {
         // Find message container and input elements
         const messageContainer = document.querySelector('.msg-form__msg-content-container');
         const messageInput = document.querySelector('.msg-form__contenteditable[contenteditable="true"]');
+        const sendButton = document.querySelector('button[type="submit"]') || 
+                          document.querySelector('.msg-form__send-button') ||
+                          document.querySelector('button.msg-form__send-toggle');
+
+        console.log('Elements found:', {
+            container: messageContainer,
+            input: messageInput,
+            sendButton: sendButton
+        });
 
         // Check if elements exist
         if (!messageContainer || !messageInput) {
@@ -516,39 +559,45 @@ async function insertMessage(message) {
             return;
         }
 
-        // Check for duplicate messages
-        const previousMessages = document.querySelectorAll('.msg-s-event-listitem__body');
-        const isDuplicate = Array.from(previousMessages).some(msgElement => {
-            const existingMessage = msgElement.textContent.trim();
-            return existingMessage === message.trim();
+        // Activate the container
+        messageInput.focus();
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Insert the message with proper HTML structure
+        const p = document.createElement('p');
+        p.textContent = message;
+        messageInput.innerHTML = '';
+        messageInput.appendChild(p);
+
+        // Dispatch multiple events to ensure LinkedIn recognizes the input
+        const events = ['input', 'change', 'keydown', 'keyup', 'keypress'];
+        events.forEach(eventType => {
+            messageInput.dispatchEvent(new Event(eventType, { bubbles: true }));
         });
 
-        if (isDuplicate) {
-            alert('This message has already been sent in this conversation.');
-            return false;
+        // Additional keyboard simulation
+        messageInput.dispatchEvent(new KeyboardEvent('keydown', { 
+            key: 'a', 
+            bubbles: true,
+            cancelable: true,
+            composed: true
+        }));
+
+        // Enable send button if found
+        if (sendButton) {
+            sendButton.removeAttribute('disabled');
+            sendButton.setAttribute('aria-disabled', 'false');
+            console.log('Send button activated');
+        } else {
+            console.warn('Send button not found');
         }
-
-        // Activate the container if not already active
-        if (!messageContainer.classList.contains('msg-form__msg-content-container--is-active')) {
-            messageInput.focus();
-            // Add a small delay to ensure focus is registered
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        // Create paragraph element for the message
-        const messageHTML = `<p>${message}</p>`;
-        messageInput.innerHTML = messageHTML;
-
-        // Dispatch required events
-        messageInput.dispatchEvent(new Event('input', { bubbles: true }));
-        messageInput.dispatchEvent(new Event('change', { bubbles: true }));
 
         // Verify message was inserted
         if (messageInput.textContent.trim() !== message.trim()) {
             throw new Error('Message insertion failed - content mismatch');
         }
 
-        console.log('Message successfully inserted:', message);
+        console.log('Message successfully inserted and UI updated');
         return true;
 
     } catch (error) {
