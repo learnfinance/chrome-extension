@@ -77,7 +77,7 @@ function showQuotationBox() {
     quotationBox.style.position = "fixed";
     quotationBox.style.top = "20%";
     quotationBox.style.right = "5%";
-    quotationBox.style.width = "320px";
+    quotationBox.style.width = "400px"; // Increased width to match message box
     quotationBox.style.padding = "0";
     quotationBox.style.background = "#ffffff";
     quotationBox.style.borderRadius = "15px";
@@ -87,16 +87,14 @@ function showQuotationBox() {
     quotationBox.style.display = "flex";
     quotationBox.style.flexDirection = "column";
     quotationBox.style.alignItems = "center";
-    quotationBox.style.maxHeight = "600px";
+    quotationBox.style.maxHeight = "700px"; // Increased to match message box
     quotationBox.style.overflowY = "auto";
 
-    // Add header with gradient background
+    // Add header with solid background
     let header = document.createElement('div');
     header.style.width = "100%";
-    header.style.padding = "15px";
-    header.style.background = "linear-gradient(-45deg, #9C27B0, #E91E63, #9C27B0, #E91E63)";
-    header.style.backgroundSize = "400% 400%";
-    header.style.animation = "gradientAnimation 5s ease infinite";
+    header.style.padding = "20px"; // Increased padding
+    header.style.background = "#0077B5"; // LinkedIn blue color
     header.style.borderTopLeftRadius = "15px";
     header.style.borderTopRightRadius = "15px";
     header.style.color = "#fff";
@@ -105,10 +103,10 @@ function showQuotationBox() {
     header.style.alignItems = "center";
 
     let title = document.createElement('h3');
-    title.innerText = "LinkedIN Genie";
+    title.innerText = "Generate Comment";
     title.style.margin = "0";
     title.style.fontFamily = "'Avenir', sans-serif";
-    title.style.fontSize = "16px";
+    title.style.fontSize = "18px"; // Increased font size
     title.style.fontWeight = "bold";
     title.style.color = "white";
 
@@ -116,12 +114,12 @@ function showQuotationBox() {
     let closeButton = document.createElement('button');
     closeButton.innerText = "✕";
     closeButton.style.position = "absolute";
-    closeButton.style.top = "10px";
-    closeButton.style.right = "10px";
+    closeButton.style.top = "15px"; // Adjusted position
+    closeButton.style.right = "15px";
     closeButton.style.background = "transparent";
     closeButton.style.border = "none";
     closeButton.style.color = "#fff";
-    closeButton.style.fontSize = "20px";
+    closeButton.style.fontSize = "24px"; // Increased size
     closeButton.style.cursor = "pointer";
     closeButton.style.zIndex = "10001";
     closeButton.addEventListener('click', () => quotationBox.remove());
@@ -134,6 +132,8 @@ function showQuotationBox() {
     let loadingSpinner = document.createElement('div');
     loadingSpinner.classList.add('loading-spinner');
     loadingSpinner.style.marginTop = "100px";
+    loadingSpinner.style.width = "40px"; // Increased spinner size
+    loadingSpinner.style.height = "40px"; // Increased spinner size
     quotationBox.appendChild(loadingSpinner);
 
     document.body.appendChild(quotationBox);
@@ -467,70 +467,74 @@ async function generateMessage(userName, messageBox, loadingSpinner) {
             body: JSON.stringify(requestBody)
         });
 
-        const result = await response.text();
-        console.log("Generated message:", result);
+        // Parse the response as JSON
+        const result = await response.json();
+        console.log("Generated messages:", result);
 
         loadingSpinner.remove();
 
-        // Split the response into separate messages and create buttons for each
-        const messages = result.split('\n').filter(msg => msg.trim() !== '');
-        
-        // Create a container for all message buttons
-        const buttonsContainer = document.createElement('div');
-        buttonsContainer.style.width = '100%';
-        buttonsContainer.style.padding = '10px 0';
+        // Create container for messages
+        const messagesContainer = document.createElement('div');
+        messagesContainer.style.padding = '15px';
+        messagesContainer.style.display = 'flex';
+        messagesContainer.style.flexDirection = 'column';
+        messagesContainer.style.gap = '15px';
 
-        messages.forEach((message, index) => {
+        // Iterate through the JSON messages
+        Object.entries(result).forEach(([key, message], index) => {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.style.width = '100%';
+            
+            // Create message button
             const messageButton = document.createElement('button');
-            messageButton.innerText = message;
-            messageButton.style.padding = "15px 20px"; // Increased padding
-            messageButton.style.margin = "12px 20px"; // Increased margin
-            messageButton.style.width = "calc(100% - 40px)"; // Adjusted for new margins
-            messageButton.style.backgroundColor = "#fff";
-            messageButton.style.color = "#333";
-            messageButton.style.border = "1px solid #ddd";
-            messageButton.style.borderRadius = "10px";
-            messageButton.style.cursor = "pointer";
-            messageButton.style.fontSize = "16px"; // Increased font size
-            messageButton.style.lineHeight = "1.5"; // Added for better readability
-            messageButton.style.textAlign = "left";
-            messageButton.style.transition = "all 0.2s ease";
+            messageButton.innerHTML = `<strong>Option ${index + 1}:</strong><br>${message}`;
+            messageButton.style.width = '100%';
+            messageButton.style.padding = '15px 20px';
+            messageButton.style.margin = '0';
+            messageButton.style.backgroundColor = '#fff';
+            messageButton.style.color = '#333';
+            messageButton.style.border = '1px solid #ddd';
+            messageButton.style.borderRadius = '10px';
+            messageButton.style.cursor = 'pointer';
+            messageButton.style.fontSize = '16px';
+            messageButton.style.lineHeight = '1.5';
+            messageButton.style.textAlign = 'left';
+            messageButton.style.transition = 'all 0.2s ease';
+            messageButton.style.display = 'block';
 
-            // Add number indicator
-            const numberIndicator = document.createElement('span');
-            numberIndicator.innerText = `${index + 1}. `;
-            numberIndicator.style.fontWeight = 'bold';
-            numberIndicator.style.marginRight = '5px';
-            messageButton.prepend(numberIndicator);
-
+            // Add hover effects
             messageButton.addEventListener('mouseover', () => {
-                messageButton.style.backgroundColor = "#f0f8ff";
-                messageButton.style.transform = "scale(1.02)";
+                messageButton.style.backgroundColor = '#f0f8ff';
+                messageButton.style.transform = 'scale(1.02)';
+                messageButton.style.borderColor = '#0073b1';
             });
 
             messageButton.addEventListener('mouseout', () => {
-                messageButton.style.backgroundColor = "#fff";
-                messageButton.style.transform = "scale(1)";
+                messageButton.style.backgroundColor = '#fff';
+                messageButton.style.transform = 'scale(1)';
+                messageButton.style.borderColor = '#ddd';
             });
 
+            // Add click handler
             messageButton.addEventListener('click', () => {
                 insertMessage(message);
                 messageBox.remove();
                 showSuccessAnimation();
             });
 
-            buttonsContainer.appendChild(messageButton);
+            messageWrapper.appendChild(messageButton);
+            messagesContainer.appendChild(messageWrapper);
         });
 
-        messageBox.appendChild(buttonsContainer);
+        messageBox.appendChild(messagesContainer);
 
     } catch (error) {
         console.error('Error generating message:', error);
         loadingSpinner.remove();
 
         const errorMessage = document.createElement('div');
-        errorMessage.style.padding = "20px";
-        errorMessage.style.color = "#dc3545";
+        errorMessage.style.padding = '20px';
+        errorMessage.style.color = '#dc3545';
         errorMessage.innerText = 'Failed to generate message. Please try again.';
         messageBox.appendChild(errorMessage);
     }
@@ -542,9 +546,7 @@ async function insertMessage(message) {
         // Find message container and input elements
         const messageContainer = document.querySelector('.msg-form__msg-content-container');
         const messageInput = document.querySelector('.msg-form__contenteditable[contenteditable="true"]');
-        const sendButton = document.querySelector('button[type="submit"]') || 
-                          document.querySelector('.msg-form__send-button') ||
-                          document.querySelector('button.msg-form__send-toggle');
+        const sendButton = document.querySelector('.msg-form__send-button');
 
         console.log('Elements found:', {
             container: messageContainer,
@@ -553,51 +555,29 @@ async function insertMessage(message) {
         });
 
         // Check if elements exist
-        if (!messageContainer || !messageInput) {
-            console.error('Message container or input not found');
-            alert('Unable to find message input. Please make sure you are in a conversation.');
+        if (!messageContainer || !messageInput || !sendButton) {
+            console.error('Required elements not found');
+            alert('Unable to find message input or send button. Please make sure you are in a conversation.');
             return;
         }
 
-        // Activate the container
+        // Activate the container and focus the input
         messageInput.focus();
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Insert the message with proper HTML structure
-        const p = document.createElement('p');
-        p.textContent = message;
-        messageInput.innerHTML = '';
-        messageInput.appendChild(p);
+        messageInput.innerHTML = `<p>${message}</p>`;
 
         // Dispatch multiple events to ensure LinkedIn recognizes the input
-        const events = ['input', 'change', 'keydown', 'keyup', 'keypress'];
-        events.forEach(eventType => {
+        ['input', 'change', 'keydown', 'keyup'].forEach(eventType => {
             messageInput.dispatchEvent(new Event(eventType, { bubbles: true }));
         });
 
-        // Additional keyboard simulation
-        messageInput.dispatchEvent(new KeyboardEvent('keydown', { 
-            key: 'a', 
-            bubbles: true,
-            cancelable: true,
-            composed: true
-        }));
+        // Enable send button
+        sendButton.removeAttribute('disabled');
+        sendButton.classList.remove('artdeco-button--disabled');
 
-        // Enable send button if found
-        if (sendButton) {
-            sendButton.removeAttribute('disabled');
-            sendButton.setAttribute('aria-disabled', 'false');
-            console.log('Send button activated');
-        } else {
-            console.warn('Send button not found');
-        }
-
-        // Verify message was inserted
-        if (messageInput.textContent.trim() !== message.trim()) {
-            throw new Error('Message insertion failed - content mismatch');
-        }
-
-        console.log('Message successfully inserted and UI updated');
+        console.log('Message inserted and send button activated');
         return true;
 
     } catch (error) {
